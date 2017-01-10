@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -17,39 +19,34 @@ type ScrapedRelease struct {
 }
 
 type WatchedRepo struct {
-	UserName string
-	RepoName string
+	UserName string `json:"userName"`
+	RepoName string `json:"repoName"`
 }
 
-func getWatchlist() []WatchedRepo {
-	return []WatchedRepo{
-		WatchedRepo{UserName: "Robz8", RepoName: "TWLoader"},
-		WatchedRepo{UserName: "TiniVi", RepoName: "safehax"},
-		WatchedRepo{UserName: "nedwill", RepoName: "fasthax"},
-		WatchedRepo{UserName: "d0k3", RepoName: "Decrypt9WIP"},
-		WatchedRepo{UserName: "d0k3", RepoName: "EmuNAND9"},
-		WatchedRepo{UserName: "d0k3", RepoName: "OTPHelper"},
-		WatchedRepo{UserName: "d0k3", RepoName: "Hourglass9"},
-		WatchedRepo{UserName: "d0k3", RepoName: "CTRXplorer"},
-		WatchedRepo{UserName: "d0k3", RepoName: "A9NC"},
-		WatchedRepo{UserName: "d0k3", RepoName: "GodMode9"},
-		WatchedRepo{UserName: "AuroraWright", RepoName: "Luma3DS"},
-		WatchedRepo{UserName: "AuroraWright", RepoName: "SafeA9LHInstaller"},
-		WatchedRepo{UserName: "javimadgit", RepoName: "TinyFormat"},
-		WatchedRepo{UserName: "Steveice10", RepoName: "FBI"},
-		WatchedRepo{UserName: "yellows8", RepoName: "hblauncher_loader"},
-		WatchedRepo{UserName: "meladroit", RepoName: "svdt"},
-		WatchedRepo{UserName: "roxas75", RepoName: "rxTools"},
-		WatchedRepo{UserName: "mid-kid", RepoName: "CakesForeveryWan"},
-		WatchedRepo{UserName: "FloatingStar", RepoName: "FTP-GMX"},
-		WatchedRepo{UserName: "llakssz", RepoName: "CIAngel"},
+func getWatchlist() ([]WatchedRepo, error) {
+
+	file, err := ioutil.ReadFile("watchlist.json")
+
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	watchlist := []WatchedRepo{}
+	if err := json.Unmarshal(file, &watchlist); err != nil {
+		return watchlist, err
+	}
+
+	return watchlist, nil
 }
 func main() {
 
 	resc, errc := make(chan ScrapedRelease), make(chan error)
 
-	watchlist := getWatchlist()
+	watchlist, err := getWatchlist()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for _, v := range watchlist {
 		go func(repo WatchedRepo) {
