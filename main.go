@@ -23,23 +23,7 @@ type WatchedRepo struct {
 	RepoName string `json:"repoName"`
 }
 
-func getWatchlist() ([]WatchedRepo, error) {
-
-	file, err := ioutil.ReadFile("watchlist.json")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	watchlist := []WatchedRepo{}
-	if err := json.Unmarshal(file, &watchlist); err != nil {
-		return watchlist, err
-	}
-
-	return watchlist, nil
-}
 func main() {
-
 	resc, errc := make(chan ScrapedRelease), make(chan error)
 
 	watchlist, err := getWatchlist()
@@ -77,6 +61,22 @@ func main() {
 	}
 
 	table.Render()
+}
+
+func getWatchlist() ([]WatchedRepo, error) {
+
+	file, err := ioutil.ReadFile("watchlist.json")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	watchlist := []WatchedRepo{}
+	if err := json.Unmarshal(file, &watchlist); err != nil {
+		return watchlist, err
+	}
+
+	return watchlist, nil
 }
 
 func createReleaseHeader() []string {
