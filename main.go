@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -16,6 +17,19 @@ import (
 type ScrapedRelease struct {
 	Repo    WatchedRepo
 	Release github.RepositoryRelease
+}
+type ScrapedReleases []ScrapedRelease
+
+func (slice ScrapedReleases) Len() int {
+	return len(slice)
+}
+
+func (slice ScrapedReleases) Less(i, j int) bool {
+	return slice[i].Release.CreatedAt.Time.After(slice[j].Release.CreatedAt.Time)
+}
+
+func (slice ScrapedReleases) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
 }
 
 type WatchedRepo struct {
@@ -51,13 +65,20 @@ func main() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(createReleaseHeader())
 
+	items := ScrapedReleases{}
 	for i := 0; i < len(watchlist); i++ {
 		select {
 		case res := <-resc:
-			table.Append(createReleaseRow(res))
+			items = append(items, res)
 		case err := <-errc:
 			fmt.Println(err)
 		}
+	}
+
+	sort.Sort(items)
+
+	for _, item := range items {
+		table.Append(createReleaseRow(item))
 	}
 
 	table.Render()
